@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 cards/
+.Rdata
+.httr-oauth
+.DS_Store
