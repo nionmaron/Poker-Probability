@@ -1,0 +1,73 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-07-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ESTAPAS DO JOGO
+
+Antes do Jogo: Os jogadores compram fichas e são distribuídas as cartas. Cada jogador recebe duas cartas de cara para baixo, conhecidas como cartas "hole".
+
+Pré-Flop: O jogador à esquerda do dealer (distribuidor) faz a primeira aposta obrigatória, chamada de "small blind", e o jogador à esquerda dele faz a segunda aposta obrigatória, chamada de "big blind". Estas apostas iniciais ajudam a criar o pote.
+
+Aposta: Após receberem as cartas iniciais, os jogadores têm a opção de fazer uma das seguintes ações:
+
+Fold: Descartar as cartas e sair da mão, desistindo de qualquer possibilidade de ganhar o pote.
+Call: Igualar a aposta atual para continuar na mão.
+Raise: Aumentar a aposta atual. Os jogadores subsequentes devem igualar o valor do aumento ou desistir.
+Check: Passar a vez sem fazer uma aposta. Isso só é possível se não houver apostas anteriores na rodada de apostas.
+
+Flop: Depois da primeira rodada de apostas, o dealer revela as três primeiras cartas comunitárias na mesa. Essas cartas são conhecidas como "flop". Os jogadores usam essas cartas em combinação com suas cartas hole para formar a melhor mão possível.
+
+Nova Rodada de Apostas: Após o flop, ocorre uma nova rodada de apostas, começando pelo jogador à esquerda do dealer. Os jogadores têm as mesmas opções de aposta descritas na etapa 3.
+
+Turn: Após a segunda rodada de apostas, o dealer revela a quarta carta comunitária na mesa, conhecida como "turn" ou "fourth street".
+
+Nova Rodada de Apostas: Assim como após o flop, os jogadores têm uma nova rodada de apostas, começando pelo jogador à esquerda do dealer.
+
+River: Após a terceira rodada de apostas, o dealer revela a quinta e última carta comunitária na mesa, conhecida como "river" ou "fifth street".
+
+Última Rodada de Apostas: Após o river, os jogadores têm a última rodada de apostas, seguindo as mesmas opções descritas anteriormente.
+
+Showdown: Se houver mais de um jogador ainda na mão após a última rodada de apostas, ocorre o showdown. Os jogadores revelam suas cartas hole e a melhor mão possível é determinada usando as cinco cartas comunitárias e as duas cartas hole de cada jogador. O jogador com a melhor mão vence o pote.
+
+Vale ressaltar que as regras podem variar um pouco entre as diferentes variantes do pôquer, mas esse é o esquema geral de um jogo de pôquer Texas Hold'em.
+
+
+# SIMULADORES
+
+Simuladores de range vs. range: São programas ou ferramentas que ajudam a calcular as probabilidades de vitória para diferentes intervalos de mãos iniciais em jogos de cartas, como o poker. Eles permitem que os jogadores simulem diferentes cenários de jogo e tomem decisões estratégicas com base nas informações fornecidas.
+
+Programas baseados em ICM (Independent Chip Model): O ICM é um modelo matemático usado em torneios de poker para calcular o valor relativo das fichas dos jogadores. O modelo leva em consideração o tamanho das pilhas de fichas, a estrutura de pagamento e as probabilidades de ganhar o torneio. Os programas baseados em ICM ajudam os jogadores a tomar decisões adequadas durante os estágios finais de um torneio, considerando fatores como o valor esperado das fichas em jogo.
+
+Programas baseados em Nash: Os programas baseados em Nash são ferramentas que aplicam a teoria dos jogos e a estratégia de equilíbrio de Nash para determinar as melhores ações a serem tomadas em um determinado jogo. Esses programas calculam as estratégias ótimas para os jogadores, considerando as ações e informações disponíveis a eles.
+
+Em resumo, a frase sugere que a pessoa ou sistema mencionado está envolvido na computação de cálculos avançados relacionados à equidade em diferentes contextos, como jogos de cartas ou negociações, utilizando simuladores de range vs. range, programas baseados em ICM ou Nash.
+
+# deCISÃO
+
+Decisões estratégicas de longo prazo: Estas incluem ajustar seu estilo de jogo com base na maneira como seus oponentes estão jogando, decidir quando é o melhor momento para jogar de forma agressiva ou conservadora, e gerenciar sua pilha de fichas.
+
+No poker, há várias decisões que você pode ter que tomar, dependendo da situação. Aqui estão algumas das decisões mais comuns:
+
+Apostar (Bet): Isso geralmente é feito quando você acredita que tem uma mão forte ou quer fazer um bluff para fazer os outros jogadores pensarem que você tem uma mão forte. Ao apostar, você está obrigando os outros jogadores a colocar mais dinheiro no pote se quiserem continuar na mão.
+
+Pagar (Call): Se um jogador antes de você fez uma aposta, você pode decidir pagar essa aposta para continuar na mão. Normalmente, você faz isso quando acredita que sua mão é boa o suficiente para ter uma chance de ganhar.
+
+Aumentar (Raise): Se um jogador antes de você fez uma aposta, você pode decidir aumentar. Isso significa que você não só paga a aposta do jogador anterior, mas também adiciona mais dinheiro ao pote. Normalmente, você faz isso quando acredita que tem uma mão muito forte.
+
+Desistir (Fold): Se você acredita que sua mão não é forte o suficiente para ganhar, você pode decidir desistir. Ao desistir, você perde qualquer dinheiro que já tenha colocado no pote, mas evita perder mais.
+
+Passar (Check): Se ninguém fez uma aposta antes de você durante uma rodada de apostas, você pode decidir passar. Isso significa que você não está colocando mais dinheiro no pote, mas ainda está na mão.
+
+Blefar (Bluff): Esta é uma decisão estratégica onde você aposta ou aumenta com uma mão fraca na esperança de fazer os outros jogadores desistirem, pensando que você tem uma mão forte.
+
+Decisões de apostas pós-flop: Estas são decisões tomadas após o flop (as primeiras três cartas comunitárias em jogos como o Texas Hold'em). Você pode decidir continuar apostando com uma mão forte, fazer um bluff, ou desistir se acreditar que não pode ganhar.
+
+
+
+

@@ -3,17 +3,12 @@
 ####################################################################################
 # função de decisão conforme estágio do jogo conforme probabilidade
 
-get_decision <- function(n_players=4, prob, stage) {
+get_decision <- function(n_players, prob, stage) {
   
-  ## fold(2D 3S) Call(6H 7H) Raise-Alto(AH AD)
-  if(stage=="Pre_Flop" & n_players==4){Decision = c("Fold (0-10)", "Fold (10-18)", "Fold/Call (18-20)", "Fold/Call (20-23)", "Call (23-26)", "Call (26-29)", "Raise-Baixo (29-40)", "Raise-Moderado (40-60)", "Raise-Alto (60-100)")}  # 25% 
-  
-  if(stage=="Flop" & n_players==4){Decision = c("Fold (0-10)", "Fold (10-17)", "Fold (17-20)", "Fold (20-24)", "Call (24-30)", "Call (30-40)", "Raise-Baixo (40-60)", "Raise-Moderado (60-75)", "Raise-Alto (75-100)")} # 25%
-  
-  if(stage=="Turn" & n_players==4){Decision = c("Fold (0-10)", "Fold (10-17)", "Fold (17-20)", "Fold (20-24)", "Call (24-30)", "Call (30-45)", "Raise-Baixo (45-60)", "Raise-Moderado (60-80)", "Raise-Alto (80-100)")} # 25%
-  
-  if(stage=="River" & n_players==4){Decision = c("Fold (0-10)", "Fold (10-17)", "Fold (17-20)", "Fold (20-24)", "Call (24-30)", "Call (30-50)", "Raise-Baixo (50-70)", "Raise-Moderado (70-90)", "Raise-Alto (90-100)")} # 25%
-  
+  if(n_players<=9){
+    Probabilidade_Min <- c(0, 10, 20, 30, 40, 50, 60, 70, 80)
+    Probabilidade_Max <- c(10, 20, 30, 40, 50, 60, 70, 80, 100)
+  }
   
   poker_decision <- data.frame(
     "Probabilidade_Min" = c(0, 10, 20, 30, 40, 50, 60, 70, 80),
