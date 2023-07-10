@@ -26,10 +26,21 @@ Data_frame_cards <- data.frame(n_cards, cardDeck)
 # Cria uma sequência de 52 números (representando as cartas)
 SEQ_CARDS <- seq(52)
 
+
+
 # Definir a interface do usuário
 ui <- dashboardPage(
   dashboardHeader(title = "Poker Card Selector"),
-  dashboardSidebar(disable = TRUE),
+  #dashboardSidebar(disable = TRUE),
+  dashboardSidebar(
+    helpText(" Configurações Iniciais para Simulação "),
+    selectInput("language", "Escolha um idioma:",choices = c("English", "Português")),
+    numericInput("n_simulation", "Número de Simulações para Cálculo das probabilidades", value = 300, max=1000, min = 1,step=1),  # Valor inicial e restrição mínima
+    numericInput("n_players", "Número de Jogadores na mesa", value = 4, min = 2, max=9,step=1),  # Valor inicial e restrição mínima
+    actionButton("default", "Redefinir")
+  ),
+  
+  
   dashboardBody(
     fluidRow(
       box(title = "Copas (Hearts)",background = "red",solidHeader = FALSE, width = 12, uiOutput("hearts")),
@@ -41,7 +52,8 @@ ui <- dashboardPage(
       #box(title = "Número de jogadores na mesa", status = "primary", solidHeader = TRUE, width = 12,
           #radioButtons("num_users", label = NULL, choices = 1:9, inline = TRUE),
           #),
-      box(actionBttn("reset", "Resetar seleção", style = "gradient", color = "warning", size = "lg")),
+      box(actionBttn("reset", "Reiniciar Jogo", style = "gradient", color = "warning", size = "lg")),
+      box(actionBttn("reload", "Reload", style = "gradient", color = "warning", size = "lg")),
       box(title = "Mensagens", status = "primary", solidHeader = TRUE, width = 12,
           verbatimTextOutput("message"))
     )
@@ -51,6 +63,14 @@ ui <- dashboardPage(
 
 # Defina o servidor
 server <- function(input, output, session) {
+  
+  
+  # Reiniciar o valor do campo de entrada numérico para o valor inicial
+  observeEvent(input$default, {
+    updateNumericInput(session, "n_simulation", value = 300)
+    updateNumericInput(session, "n_players", value = 4)
+  })
+  
   # Variável para armazenar as cartas selecionadas
   selected_cards <- reactiveValues(hand = character(0), table = character(0), clicked = character(0))
   num_users <- reactiveVal(0)
@@ -130,12 +150,17 @@ server <- function(input, output, session) {
         paste(convert_to_unicode(selected_cards$table), collapse = "-"))
   })
   
+  
   # Exibir uma mensagem dependendo da etapa do jogo
+  calcularFuncao <- function() {
   output$message <- renderPrint({
+    
     if (length(selected_cards$hand) == 2 && length(selected_cards$table) ==0) {
+      cat("Número de Simulações:",input$n_simulation)
+      cat("\nJogadores:",input$n_players)
       SIMULATION_POKER_NION( Data_frame_cards = Data_frame_cards,
-                             N_SIMULATION=500,
-                             nPlayers = 4,
+                             N_SIMULATION=input$n_simulation,
+                             nPlayers = input$n_players,
                              CARTA_PLAYER01_01 = selected_cards$hand[1],
                              CARTA_PLAYER01_02 = selected_cards$hand[2],
                              ROUND_ONE_01="",
@@ -148,8 +173,8 @@ server <- function(input, output, session) {
     
     if (length(selected_cards$hand) == 2 && length(selected_cards$table) ==3) {
       SIMULATION_POKER_NION( Data_frame_cards = Data_frame_cards,
-                             N_SIMULATION=500,
-                             nPlayers = 4,
+                             N_SIMULATION=input$n_simulation,
+                             nPlayers = input$n_players,
                              CARTA_PLAYER01_01 = selected_cards$hand[1],
                              CARTA_PLAYER01_02 = selected_cards$hand[2],
                              ROUND_ONE_01=selected_cards$table[1],
@@ -162,8 +187,8 @@ server <- function(input, output, session) {
     
     if (length(selected_cards$hand) == 2 && length(selected_cards$table) ==4) {
       SIMULATION_POKER_NION( Data_frame_cards = Data_frame_cards,
-                             N_SIMULATION=500,
-                             nPlayers = 4,
+                             N_SIMULATION=input$n_simulation,
+                             nPlayers = input$n_players,
                              CARTA_PLAYER01_01 = selected_cards$hand[1],
                              CARTA_PLAYER01_02 = selected_cards$hand[2],
                              ROUND_ONE_01=selected_cards$table[1],
@@ -176,8 +201,8 @@ server <- function(input, output, session) {
     
     if (length(selected_cards$hand) == 2 && length(selected_cards$table) ==5) {
       SIMULATION_POKER_NION( Data_frame_cards = Data_frame_cards,
-                             N_SIMULATION=500,
-                             nPlayers = 4,
+                             N_SIMULATION=input$n_simulation,
+                             nPlayers = input$n_players,
                              CARTA_PLAYER01_01 = selected_cards$hand[1],
                              CARTA_PLAYER01_02 = selected_cards$hand[2],
                              ROUND_ONE_01=selected_cards$table[1],
@@ -188,7 +213,28 @@ server <- function(input, output, session) {
       )
     }
     
+    
+
+    
   })
+  
+  }# recalcular
+  
+  # Cálculo inicial
+  calcularFuncao()
+  
+  observeEvent(input$n_players, {
+    calcularFuncao()
+  })
+  
+  observeEvent(input$n_simulation, {
+    calcularFuncao()
+  })
+  
+  observeEvent(input$reload, {
+    calcularFuncao()
+  })
+  
 }
 
 # Executar o aplicativo
