@@ -1,31 +1,118 @@
 
 
 ####################################################################################
-# função de decisão conforme estágio do jogo conforme probabilidade
+# 
 
-get_decision <- function(n_players, prob, stage) {
+Game_Guidance <- function(lang, selected_cards) {
   
-  if(n_players<=9){
-    Probabilidade_Min <- c(0, 10, 20, 30, 40, 50, 60, 70, 80)
-    Probabilidade_Max <- c(10, 20, 30, 40, 50, 60, 70, 80, 100)
-  }
-  
-  poker_decision <- data.frame(
-    "Probabilidade_Min" = c(0, 10, 20, 30, 40, 50, 60, 70, 80),
-    "Probabilidade_Max" = c(10, 20, 30, 40, 50, 60, 70, 80, 100),
-    "Pre_Flop" = c("Fold", "Fold", "Fold", "Fold", "Call", "Call", "Raise (Baixo)", "Raise (Moderado)", "Raise (Alto)"),
-    "Flop" = c("Fold", "Fold", "Fold", "Call", "Call", "Raise (Baixo)", "Raise (Moderado)", "Raise (Alto)", "Raise (Alto)"),
-    "Turn" = c("Fold", "Fold", "Fold", "Call", "Raise (Baixo)", "Raise (Moderado)", "Raise (Alto)", "Raise (Alto)", "Raise (Alto)"),
-    "River" = c("Fold", "Fold", "Call", "Raise (Baixo)", "Raise (Moderado)", "Raise (Alto)", "Raise (Alto)", "Raise (Alto)", "Raise (Alto)")
+  phrases_pt <- list(
+    player01 = "Jogador 01: Selecione duas cartas para sua mão.",
+    flop = "Flop: Selecione três cartas para a mesa.",
+    turn = "Turn: Selecione uma quarta carta para a mesa.",
+    select = "Selecione uma quinta carta para a mesa.",
+    all_selected = "Todas as cartas foram selecionadas. Boa sorte!"
   )
   
-  # Verifica se a etapa do jogo é válida
-  if (!stage %in% names(poker_decision)) {
-    stop(paste("Erro: '", stage, "' não é uma etapa válida. As opções são: 'Pre_Flop', 'Flop', 'Turn', 'River'.", sep = ""))
+  phrases_en <- list(
+    player01 = "Player 01: Select two cards for your hand.",
+    flop = "Flop: Select three cards for the table.",
+    turn = "Turn: Select a fourth card for the table.",
+    select = "Select a fifth card for the table.",
+    all_selected = "All cards have been selected. Good luck!"
+  )
+  
+  if(lang == "pt") {
+    phrases <- phrases_pt
+  } else if(lang == "en") {
+    phrases <- phrases_en
+  } else {
+    stop("Language not supported.")
   }
   
+  if(length(selected_cards$hand) < 2) {
+    resultado <- phrases$player01
+  } else if(length(selected_cards$table) < 3) {
+    resultado <- phrases$flop
+  } else if(length(selected_cards$table) < 4) {
+    resultado <- phrases$turn
+  } else if(length(selected_cards$table) < 5) {
+    resultado <- phrases$select
+  } else {
+    resultado <- phrases$all_selected
+  }
+  
+  texto <- paste("", resultado)
+  
+  return(texto)
+}
+
+
+####################################################################################
+# função data frame de resultados
+get_poker_score_df <- function(language = "en", new_column = NULL) {
+  Score <- 1:9
+  my_score<-c("","","","","","","","","")
+  score_dict_en <- c("High Card", "One Pair", "Two Pair", "Three of a Kind", 
+                     "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush")
+  score_dict_pt <- c("Carta Alta", "Um Par", "Dois Pares", "Trinca", 
+                     "Sequência", "Flush", "Full House", "Quadra", "Sequência de Mesmo Naipe")
+  Prob_Simulation <- c(50.1177,42.2569,4.7539,2.1128,0.3925,0.1965,0.1441,0.0240,0.00139)
+  
+  if (language == "en") {
+    score_dict <- score_dict_en
+  } else if (language == "pt") {
+    score_dict <- score_dict_pt
+  } else {
+    stop("Invalid language. Please input 'en' for English or 'pt' for Portuguese.")
+  }
+  
+  df <- data.frame(Score = Score,my_score=my_score, Hand = score_dict, Probability = Prob_Simulation)
+  
+  if (!is.null(new_column)) {
+    if (length(new_column) != length(Score)) {
+      stop("Invalid new_column. It must have the same length as Score.")
+    }
+    df$Prob_Simulation <- new_column
+  }
+  
+  return(df)
+}
+
+
+####################################################################################
+# função da linguagem
+lang_app<- function(lang="English"){
+  if(lang=="English"){return("en")}
+  else if (lang=="Português"){return("pt")}
+  else{
+    return("en")}
+}
+
+####################################################################################
+#library(gtools)
+# gerar data.frame de todas combinações
+gerar_combinacoes <- function() {
+  # Criando as 52 cartas do baralho
+  naipes <- c("H", "D", "S", "C")  # Heart, Diamond, Spade, Club
+  valores <- c("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")  # 2-10, Jack, Queen, King, Ace
+  baralho <- paste0(rep(valores, each=4), naipes)  # Criando todas as 52 cartas
+  
+  # Gerando todas as combinações de 7 cartas
+  combinacoes <- combinations(n = length(baralho), r = 7, v = baralho)
+  
+  # Convertendo as combinações em um data.frame
+  df <- data.frame(combinacoes)
+  return(df)
+}
+
+
+####################################################################################
+# função de decisão conforme estágio do jogo conforme probabilidade
+
+get_decision <- function(n_players=2, prob_Win) {
+  
   # Verifica se a probabilidade está no intervalo de 0 a 100
-  if (prob < 0 || prob > 100) {
+  if (prob_Win < 0 || prob_Win > 100) {
     stop("Erro: A probabilidade deve estar no intervalo de 0 a 100.")
   }
   
@@ -33,14 +120,34 @@ get_decision <- function(n_players, prob, stage) {
   if (n_players < 2 || n_players > 9) {
     stop("Erro: Número de jogadores deve ser entre 2 a 9.")
   }
+  poker_decision <- data.frame(
+    "Probabilidade_Min" = c(0, 40*(1/n_players)/50, 0.7, 0.8, 0.9, 0.98),
+    "Probabilidade_Max" = c(40*(1/n_players)/50, 0.7, 0.8, 0.9, 0.98, 1.01),
+    "Decision" = c("Fold", "Call", "Raise", "Raise+", "Raise++","All In")
+  )
   
+  #*(1/n_players)*5
+  
+  #entradsa
+  # 1/4 = 50%
+  # 30  = y
+  
+  #tabela
+  # 1/4 = 50%
+  # x = 100
+ #return(poker_decision)
+  
+  prob<-prob_Win/100
+  #return(prob)
   
   for (i in 1:nrow(poker_decision)) {
-    if (prob >= poker_decision$Probabilidade_Min[i] && prob < poker_decision$Probabilidade_Max[i]) {
-      return(poker_decision[[stage]][i])
+    if (prob >= poker_decision$Probabilidade_Min[i] && prob <= poker_decision$Probabilidade_Max[i]) {
+      return(poker_decision[["Decision"]][i])
     }
   }
 }
+
+get_decision(3,29)
 
 # Testa a função
 #get_decision(4,15, "Pre_Flop") # Deve retornar "Fold"
@@ -48,16 +155,32 @@ get_decision <- function(n_players, prob, stage) {
 
 
 ####################################################################################
-# Retorna a pontuação no poker
-get_poker_score <- function(score) {
-  score_dict <- c("High Card", "One Pair", "Two Pair", "Three of a Kind", 
-                  "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush")
+# Retorna o nome da pontuação no poker
+get_poker_score <- function(score, language = "en") {
+  score_dict_en <- c("High Card", "One Pair", "Two Pair", "Three of a Kind", 
+                     "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush")
+  score_dict_pt <- c("Carta Alta", "Um Par", "Dois Pares", "Trinca", 
+                     "Sequência", "Flush", "Full House", "Quadra", "Sequência de Mesmo Naipe")
+  
   if(score < 1 || score > 9) {
-    return("Invalid score. Please input a number between 1 and 9.")
+    if (language == "en") {
+      return("Invalid score. Please input a number between 1 and 9.")
+    } else if (language == "pt") {
+      return("Pontuação inválida. Por favor, insira um número entre 1 e 9.")
+    } else {
+      stop("Invalid language. Please input 'en' for English or 'pt' for Portuguese.")
+    }
   } else {
-    return(score_dict[score])
+    if (language == "en") {
+      return(score_dict_en[score])
+    } else if (language == "pt") {
+      return(score_dict_pt[score])
+    } else {
+      stop("Invalid language. Please input 'en' for English or 'pt' for Portuguese.")
+    }
   }
 }
+
 
 ####################################################################################
 # função para gerar unicode dos nipes
@@ -93,93 +216,49 @@ NION_POKER <- function(nPlayers,y) {
   board <- assignToBoard(y) # carta sobre a mesa
   cards <- hand(players, board)
   score <- showdown(cards)
+  my_score  <- showdown(cards[1:nPlayers,1:cc])[1]
+  win_score <- max(score)
   winner <- tiebreaker(nPlayers,cards,score)
-  return(winner)
+  df<-data.frame("my_score"=my_score,"win_score"=win_score,"winner"=winner)
+  return(df)
 }
 
 #######################################################################################
 # Função para determinar meu score
 
-My_Score<- function (cardsRow) {
-  ranks <- seq(from = 1, to = 13, by = 2)
-  suits <- seq(from = 2, to = 14, by = 2)
-  sortedSuits <- sort(cardsRow[suits])
-  sortedRanks <- sort(cardsRow[ranks])
-  suitValues <- rle(sortedSuits)$values
-  suitLengths <- rle(sortedSuits)$lengths
-  rankValues <- rle(sortedRanks)$values
-  rankLengths <- rle(sortedRanks)$lengths
-  k <- length(rankValues)
-  kgt4 <- k - 4
-  straight <- FALSE
-  straightFlush <- FALSE
-  if (sum(rankLengths > 1) == 0) 
-    ranking <- 1
-  if (sum(rankLengths == 2) == 1) 
-    ranking <- 2
-  if (sum(rankLengths == 2) >= 2) 
-    ranking <- 3
-  if (sum(rankLengths == 3) >= 1) 
-    ranking <- 4
-  if (k >= 5) {
-    if (sum(rankValues[c(k, 1, 2, 3, 4)] == c(14, 2, 3, 4, 
-                                              5)) == 5) 
-      straight <- TRUE
-    for (i in 1:kgt4) {
-      if (rankValues[i + 4] == (rankValues[i] + 4)) 
-        straight <- TRUE
-    }
-    if (straight == TRUE) 
-      ranking <- 5
-  }
-  if (sum(suitLengths >= 5) == 1) 
-    ranking <- 6
-  if (sum(rankLengths == 3) == 2 | (sum(rankLengths == 3) == 
-                                    1 & sum(rankLengths == 2) >= 1)) {
-    ranking <- 7
-  }
-  if (sum(rankLengths == 4) == 1) 
-    ranking <- 8
-  if (straight == TRUE & sum(suitLengths >= 5) == 1) {
-    yTemp <- dotTransformToNumber(cardsRow[ranks], cardsRow[suits])
-    yTemp <- sort(yTemp)
-    for (i in 0:3) {
-      if (sum(yTemp %in% c(13 + 13 * i, 1 + 13 * i, 2 + 
-                           13 * i, 3 + 13 * i, 4 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(1 + 13 * i, 2 + 13 * i, 3 + 
-                           13 * i, 4 + 13 * i, 5 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(2 + 13 * i, 3 + 13 * i, 4 + 
-                           13 * i, 5 + 13 * i, 6 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(3 + 13 * i, 4 + 13 * i, 5 + 
-                           13 * i, 6 + 13 * i, 7 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(4 + 13 * i, 5 + 13 * i, 6 + 
-                           13 * i, 7 + 13 * i, 8 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(5 + 13 * i, 6 + 13 * i, 7 + 
-                           13 * i, 8 + 13 * i, 9 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(6 + 13 * i, 7 + 13 * i, 8 + 
-                           13 * i, 9 + 13 * i, 10 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(7 + 13 * i, 8 + 13 * i, 9 + 
-                           13 * i, 10 + 13 * i, 11 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(8 + 13 * i, 9 + 13 * i, 10 + 
-                           13 * i, 11 + 13 * i, 12 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-      if (sum(yTemp %in% c(9 + 13 * i, 10 + 13 * i, 11 + 
-                           13 * i, 12 + 13 * i, 13 + 13 * i)) == 5) 
-        straightFlush <- TRUE
-    }
-    if (straightFlush == TRUE) 
-      ranking <- 9
-  }
-  ranking
+MY_SCORE <- function(nPlayers,y,cc=4) {
+  alias <- strsplit(replicate(1, paste0("Player", sep="", 1:nPlayers, collapse=" "))[1]," ")[[1]]
+  nPlayers <- length(alias)
+  position <- nPlayers
+  #y <- deal(nPlayers, position) # 9 jogadores 18 cartas + 5 cartas mesa total 23 cartas (aleatorio)
+  players <- assignToPlayers(nPlayers, position, y) # carta dos jogadores distribui??o 
+  board <- assignToBoard(y) # carta sobre a mesa
+  cards <- hand(players, board)
+  score <- showdown(cards)
+  my_score  <- showdown(cards[1:nPlayers,1:cc])[1]
+  return(my_score)
 }
+
+
+#######################################################################################
+# Função para determinar meu score
+
+NION_POKER <- function(nPlayers,y) {
+  alias <- strsplit(replicate(1, paste0("Player", sep="", 1:nPlayers, collapse=" "))[1]," ")[[1]]
+  nPlayers <- length(alias)
+  position <- nPlayers
+  #y <- deal(nPlayers, position) # 9 jogadores 18 cartas + 5 cartas mesa total 23 cartas (aleatorio)
+  players <- assignToPlayers(nPlayers, position, y) # carta dos jogadores distribui??o 
+  board <- assignToBoard(y) # carta sobre a mesa
+  cards <- hand(players, board)
+  score <- showdown(cards)
+  win_score <- max(score)
+  winner <- tiebreaker(nPlayers,cards,score)
+  df<-data.frame("win_score"=win_score,"winner"=winner)
+  return(df)
+}
+
+
 
 #######################################################################################
 # função para gerar simulação e tabela de probabilidade de ganhar
@@ -230,36 +309,59 @@ SIMULATION_POKER_NION<-function( Data_frame_cards,
         }
       }
       y<-SEQ_CARDS_TABLE
-      VENCEDOR<-NION_POKER(nPlayers,y)
-      TABLE00<-data.table::data.table(ID,VENCEDOR)
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
+      
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
       ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
     }
-    TIME01<-Sys.time()
-    cat(paste0("\n------ PRE-FLOP ------\nTempo de processamento: ",round(TIME01-TIME00,2),"\n"))
     
-    {
-      TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
-      TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
-      TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
-      
-      cat((paste0("01 Pré-Flop - Cards:",convert_to_unicode(CARTA_PLAYER01_01),
-                  convert_to_unicode(CARTA_PLAYER01_02),"\n")))
-      
-      cat((paste0("PROBABILIDADE DE VENCER: ",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%\n")))
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]>PROB_MEAN){cat((paste0("PROBABILIDADE ACIMA DA MÉDIA: ",PROB_MEAN,"%\n")))}
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]<=PROB_MEAN){cat((paste0("PROBABILIDADE ABAIXO DA MÉDIA: ",PROB_MEAN,"% !!!!!!!!!!\n")))}
-      
-      TXT_PROB<-(paste("PROBABILIDADE DE VENCER DE:",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%"))
-      DADOS_POKER_SIMULATION<-c(TXT_PROB)
-      #return(DADOS_POKER_SIMULATION)
-    }
+    SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
+    TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
+    TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
+    TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
+    
+
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "Flop"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=4)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
+    
+    TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+                     Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+                     Prob_score_08,Prob_score_09,
+                     Time_Calc)
+    
+    df_f
+    return(df_f)
   }
   
   ###################################################################################################################################
   # PRIMEIRA CARTAS NA MESA
   
   if(CARTA_PLAYER01_01!=CARTA_PLAYER01_02 & ROUND_ONE_01!="" & ROUND_TWO ==""){
-    
+    TIME00<-Sys.time()
     FIRST_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_01,][1])
     SECOND_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_02,][1])
     BOARD_01<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_01,][1])
@@ -267,12 +369,10 @@ SIMULATION_POKER_NION<-function( Data_frame_cards,
     BOARD_03<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_03,][1])
     SEQ_CARDS00<-SEQ_CARDS[SEQ_CARDS!=FIRST_CARD & SEQ_CARDS!=SECOND_CARD & SEQ_CARDS!=BOARD_01 & SEQ_CARDS!=BOARD_02 & SEQ_CARDS!=BOARD_03]
     SEQ_CARDS00
-    
-    TIME00<-Sys.time()
+  
     for (ii in 1:N_SIMULATION) {
       ID<-ii
       SAMPLE_ROUND01<-sample(SEQ_CARDS00,nPlayers*2+5-2)
-      SAMPLE_ROUND01
       SEQ_CARDS_TABLE<-seq(nPlayers*2+5)
       kk<-1
       for (ff in seq(nPlayers*2+5)){
@@ -289,36 +389,51 @@ SIMULATION_POKER_NION<-function( Data_frame_cards,
       }
       
       y<-SEQ_CARDS_TABLE
-      VENCEDOR<-NION_POKER(nPlayers,y)
-      TABLE00<-data.table::data.table(ID,VENCEDOR)
-      ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
       
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
+      ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
     }
-    TIME01<-Sys.time()
-    cat(paste0("\n------ FLOP ------\nTempo de processamento: ",round(TIME01-TIME00,2),"\n"))
-    
-    
-    {
+  
+      SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
       TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
       TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
       TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
-      
-      cat((paste0("02 Flop - Cards:",convert_to_unicode(CARTA_PLAYER01_01),
-                  convert_to_unicode(CARTA_PLAYER01_02),
-                  convert_to_unicode(ROUND_ONE_01),
-                  convert_to_unicode(ROUND_ONE_02),
-                  convert_to_unicode(ROUND_ONE_03),
-                  "\n")))
-      
-      cat((paste0("PROBABILIDADE DE VENCER: ",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%\n")))
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]>PROB_MEAN){cat((paste0("PROBABILIDADE ACIMA DA MÉDIA: ",PROB_MEAN,"%\n")))}
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]<=PROB_MEAN){cat((paste0("PROBABILIDADE ABAIXO DA MÉDIA: ",PROB_MEAN,"% !!!!!!!!!!\n")))}
-      
-      TXT_PROB<-(paste("PROBABILIDADE DE VENCER DE:",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%"))
-      DADOS_POKER_SIMULATION<-c(TXT_PROB)
-      #return(DADOS_POKER_SIMULATION)
-    }
+  
     
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "Flop"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=10)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
+    
+    TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+               Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+               Prob_score_08,Prob_score_09,
+               Time_Calc)
+    
+    return(df_f)
   }
   
   ###################################################################################################################################
@@ -360,33 +475,51 @@ SIMULATION_POKER_NION<-function( Data_frame_cards,
         }
       }
       y<-SEQ_CARDS_TABLE
-      VENCEDOR<-NION_POKER(nPlayers,y)
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
       
-      TABLE00<-data.table::data.table(ID,VENCEDOR)
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
       ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
     }
-    TIME01<-Sys.time()
-    cat(paste0("\n ------ TURN ------ \nTempo de processamento: ",round(TIME01-TIME00,2),"\n"))
     
-    {
-      TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
-      TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
-      TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
-      
-      cat((paste0("03- Turn Cards:  \n")))
-      cat((paste0("PROBABILIDADE DE VENCER: ",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%\n")))
-      
-      cat((paste0("MINHAS  CARTAS: ",convert_to_unicode(CARTA_PLAYER01_01)," | ",convert_to_unicode(CARTA_PLAYER01_02),"\n")))
-      cat((paste0("MESA  CARTAS: ",convert_to_unicode(BOARD_01)," | ",convert_to_unicode(BOARD_02),"\n")))
-      
-      
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]>PROB_MEAN){cat((paste0("PROBABILIDADE ACIMA DA MÉDIA: ",PROB_MEAN,"%\n")))}
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]<=PROB_MEAN){cat((paste0("PROBABILIDADE ABAIXO DA MÉDIA: ",PROB_MEAN,"% !!!!!!!!!!\n")))}
-      
-      TXT_PROB<-(paste("PROBABILIDADE DE VENCER DE:",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%"))
-      DADOS_POKER_SIMULATION<-c(TXT_PROB)
-      #return(DADOS_POKER_SIMULATION)
-    }
+    SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
+    TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
+    TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
+    TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
+    
+    
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "Turn"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=12)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
+    
+    TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+                     Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+                     Prob_score_08,Prob_score_09,
+                     Time_Calc)
+    
+    return(df_f)
     
   }
   ###################################################################################################################################
@@ -433,34 +566,346 @@ SIMULATION_POKER_NION<-function( Data_frame_cards,
         }
       }
       y<-SEQ_CARDS_TABLE
-      VENCEDOR<-NION_POKER(nPlayers,y)
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
       
-      TABLE00<-data.table::data.table(ID,VENCEDOR)
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
       ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
     }
-    # dados
+    SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
     TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
+    #CALCULO %
     TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
     TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
+    
+    
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "River"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=14)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
     TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+                     Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+                     Prob_score_08,Prob_score_09,
+                     Time_Calc)
     
-    # dataframe
-    processing_time<-round(TIME01-TIME00,2)
-    
-    cat(paste0("\n------ RIVER ------\nTempo de processamento: ",round(TIME01-TIME00,2),"\n"))
-    {
-      cat((paste0("04 River- cards --------------------- \n")))
-      cat((paste0("PROBABILIDADE DE VENCER: ",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%\n")))
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]>PROB_MEAN){cat((paste0("PROBABILIDADE ACIMA DA MÉDIA: ",PROB_MEAN,"%\n")))}
-      if(TABELA_FREQ[TABELA_FREQ$Var1==1,][3]<=PROB_MEAN){cat((paste0("PROBABILIDADE ABAIXO DA MÉDIA: ",PROB_MEAN,"% !!!!!!!!!!\n")))}
-      
-      TXT_PROB<-(paste("PROBABILIDADE DE VENCER DE:",TABELA_FREQ[TABELA_FREQ$Var1==1,][3],"%"))
-      DADOS_POKER_SIMULATION<-c(TXT_PROB)
-      #return(DADOS_POKER_SIMULATION)
-    }
+    return(df_f)
     
   }
 }
 
+
+
+
+
+
+
+#######################################################################################
+# probabilidade da mesa
+PROB_COMMUNITY<-function( Data_frame_cards,
+                                 N_SIMULATION,
+                                 nPlayers,
+                                 ROUND_ONE_01,
+                                 ROUND_ONE_02,
+                                 ROUND_ONE_03,
+                                 ROUND_TWO,
+                                 ROUND_THREE){
+  
+  CARTA_PLAYER01_01<-""
+  CARTA_PLAYER01_02<-""
+  
+  cardDeck <- c(outer(c(2:10,"J","Q","K","A"),
+                      c("H","S","C","D"),
+                      paste0))
+  
+  n_cards <- 1:length(cardDeck)
+  Data_frame_cards <- data.frame(n_cards, cardDeck)
+  
+  # DETERMINAR ERRO E CONDIÇÕES
+  
+  
+  # INICIAR SIMULAÇÃO
+  
+  JOGADORES_NAMES<-strsplit(replicate(1, paste0("Player", sep="", 1:nPlayers, collapse=" "))[1]," ")
+  PROB_MEAN<-round(1/nPlayers*100,2)
+  
+
+  
+  ###################################################################################################################################
+  # PRIMEIRA CARTAS NA MESA
+  
+  if(CARTA_PLAYER01_01==CARTA_PLAYER01_02 & ROUND_ONE_01!="" & ROUND_TWO ==""){
+    TIME00<-Sys.time()
+    FIRST_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_01,][1])
+    SECOND_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_02,][1])
+    BOARD_01<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_01,][1])
+    BOARD_02<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_02,][1])
+    BOARD_03<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_03,][1])
+    SEQ_CARDS00<-SEQ_CARDS[SEQ_CARDS!=FIRST_CARD & SEQ_CARDS!=SECOND_CARD & SEQ_CARDS!=BOARD_01 & SEQ_CARDS!=BOARD_02 & SEQ_CARDS!=BOARD_03]
+    SEQ_CARDS00
+    
+    for (ii in 1:N_SIMULATION) {
+      ID<-ii
+      SAMPLE_ROUND01<-sample(SEQ_CARDS00,nPlayers*2+5-2)
+      SEQ_CARDS_TABLE<-seq(nPlayers*2+5)
+      kk<-1
+      for (ff in seq(nPlayers*2+5)){
+        if(ff==1){SEQ_CARDS_TABLE[ff]<-FIRST_CARD}
+        if(ff==(nPlayers+1)){SEQ_CARDS_TABLE[ff]<-SECOND_CARD}
+        if(ff==(nPlayers*2+1)){SEQ_CARDS_TABLE[ff]<-BOARD_01}
+        if(ff==(nPlayers*2+2)){SEQ_CARDS_TABLE[ff]<-BOARD_02}
+        if(ff==(nPlayers*2+3)){SEQ_CARDS_TABLE[ff]<-BOARD_03}
+        
+        if(ff!=(nPlayers+1) & ff!=1 & ff!=(nPlayers*2+1)& ff!=(nPlayers*2+2) & ff!=(nPlayers*2+3)){
+          SEQ_CARDS_TABLE[ff]<-SAMPLE_ROUND01[kk]
+          kk<-kk+1
+        }
+      }
+      
+      y<-SEQ_CARDS_TABLE
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
+      
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
+      ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
+    }
+    
+    SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
+    TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
+    TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
+    TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
+    
+    
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "Flop"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=10)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
+    
+    TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+                     Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+                     Prob_score_08,Prob_score_09,
+                     Time_Calc)
+    
+    return(df_f)
+  }
+  
+  ###################################################################################################################################
+  # ROUND TWO
+  
+  if(CARTA_PLAYER01_01==CARTA_PLAYER01_02 & ROUND_ONE_01!="" & ROUND_TWO !="" &   ROUND_THREE ==""){
+    
+    FIRST_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_01,][1])
+    SECOND_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_02,][1])
+    BOARD_01<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_01,][1])
+    BOARD_02<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_02,][1])
+    BOARD_03<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_03,][1])
+    BOARD_04<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_TWO,][1])
+    
+    SEQ_CARDS00<-SEQ_CARDS[SEQ_CARDS!=FIRST_CARD & SEQ_CARDS!=SECOND_CARD & 
+                             SEQ_CARDS!=BOARD_01 & SEQ_CARDS!=BOARD_02 & 
+                             SEQ_CARDS!=BOARD_03 &
+                             SEQ_CARDS!=BOARD_04]
+    TIME00<-Sys.time()
+    for (ii in 1:N_SIMULATION) {
+      ID<-ii
+      SAMPLE_ROUND01<-sample(SEQ_CARDS00,nPlayers*2+5-2)
+      SEQ_CARDS_TABLE<-seq(nPlayers*2+5)
+      kk<-1
+      for (ff in seq(nPlayers*2+5)){
+        if(ff==1){SEQ_CARDS_TABLE[ff]<-FIRST_CARD}
+        if(ff==(nPlayers+1)){SEQ_CARDS_TABLE[ff]<-SECOND_CARD}
+        if(ff==(nPlayers*2+1)){SEQ_CARDS_TABLE[ff]<-BOARD_01}
+        if(ff==(nPlayers*2+2)){SEQ_CARDS_TABLE[ff]<-BOARD_02}
+        if(ff==(nPlayers*2+3)){SEQ_CARDS_TABLE[ff]<-BOARD_03}
+        if(ff==(nPlayers*2+4)){SEQ_CARDS_TABLE[ff]<-BOARD_04}
+        
+        if(ff!=(nPlayers+1) & ff!=1 & ff!=(nPlayers*2+1) & 
+           ff!=(nPlayers*2+2) & 
+           ff!=(nPlayers*2+3) &
+           ff!=(nPlayers*2+4)){
+          SEQ_CARDS_TABLE[ff]<-SAMPLE_ROUND01[kk]
+          kk<-kk+1
+        }
+      }
+      y<-SEQ_CARDS_TABLE
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
+      
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
+      ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
+    }
+    
+    SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
+    TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
+    TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
+    TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
+    
+    
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "Turn"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=12)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
+    
+    TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+                     Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+                     Prob_score_08,Prob_score_09,
+                     Time_Calc)
+    
+    return(df_f)
+    
+  }
+  ###################################################################################################################################
+  # ROUND THREE
+  
+  if(CARTA_PLAYER01_01==CARTA_PLAYER01_02 & ROUND_ONE_01!="" & ROUND_TWO !="" &   ROUND_THREE !=""){
+    
+    FIRST_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_01,][1])
+    SECOND_CARD<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==CARTA_PLAYER01_02,][1])
+    BOARD_01<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_01,][1])
+    BOARD_02<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_02,][1])
+    BOARD_03<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_ONE_03,][1])
+    BOARD_04<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_TWO,][1])
+    BOARD_05<-as.numeric(Data_frame_cards[Data_frame_cards$cardDeck==ROUND_THREE,][1])
+    
+    SEQ_CARDS00<-SEQ_CARDS[SEQ_CARDS!=FIRST_CARD & SEQ_CARDS!=SECOND_CARD & 
+                             SEQ_CARDS!=BOARD_01 & SEQ_CARDS!=BOARD_02 & 
+                             SEQ_CARDS!=BOARD_03 &
+                             SEQ_CARDS!=BOARD_04 &
+                             SEQ_CARDS!=BOARD_05]
+    
+    TIME00<-Sys.time()
+    for (ii in 1:N_SIMULATION) {
+      ID<-ii
+      SAMPLE_ROUND01<-sample(SEQ_CARDS00,nPlayers*2+5-2)
+      SEQ_CARDS_TABLE<-seq(nPlayers*2+5)
+      kk<-1
+      for (ff in seq(nPlayers*2+5)){
+        if(ff==1){SEQ_CARDS_TABLE[ff]<-FIRST_CARD}
+        if(ff==(nPlayers+1)){SEQ_CARDS_TABLE[ff]<-SECOND_CARD}
+        if(ff==(nPlayers*2+1)){SEQ_CARDS_TABLE[ff]<-BOARD_01}
+        if(ff==(nPlayers*2+2)){SEQ_CARDS_TABLE[ff]<-BOARD_02}
+        if(ff==(nPlayers*2+3)){SEQ_CARDS_TABLE[ff]<-BOARD_03}
+        if(ff==(nPlayers*2+4)){SEQ_CARDS_TABLE[ff]<-BOARD_04}
+        if(ff==(nPlayers*2+5)){SEQ_CARDS_TABLE[ff]<-BOARD_05}
+        
+        if(ff!=(nPlayers+1) & ff!=1 & ff!=(nPlayers*2+1) & 
+           ff!=(nPlayers*2+2) & 
+           ff!=(nPlayers*2+3) &
+           ff!=(nPlayers*2+4) &
+           ff!=(nPlayers*2+5)){
+          SEQ_CARDS_TABLE[ff]<-SAMPLE_ROUND01[kk]
+          kk<-kk+1
+        }
+      }
+      y<-SEQ_CARDS_TABLE
+      DF_VENCEDOR<-NION_POKER(nPlayers,y)  # data frame winner
+      VENCEDOR<-DF_VENCEDOR$winner[1]
+      WIN_SCORE<-DF_VENCEDOR$win_score
+      
+      TABLE00<-data.table::data.table(ID,VENCEDOR, WIN_SCORE)
+      ifelse(ii==1,TABLE_ALL<-TABLE00, TABLE_ALL<-rbind(TABLE_ALL,TABLE00))
+    }
+    SCORE_FREQ<-data.frame(table(TABLE_ALL$WIN_SCORE))
+    TABELA_FREQ<-data.frame(table(TABLE_ALL$VENCEDOR))
+    #CALCULO %
+    TABELA_FREQ$PROB<- round(TABELA_FREQ$Freq/length(TABLE_ALL$VENCEDOR)*100,2)
+    TABELA_FREQ<-TABELA_FREQ[order(TABELA_FREQ$Var1),]
+    
+    
+    Total_simulation<-sum(SCORE_FREQ$Freq)
+    
+    # data frame return
+    Stage         <- "River"
+    Players       <- nPlayers
+    Norm_Prob     <- round(1/nPlayers,2)
+    Exat_prob_P01 <- 0
+    Score_P01     <- MY_SCORE(nPlayers,y,cc=14)
+    N_simulation  <- N_SIMULATION
+    Prob_Win_S    <- round(TABELA_FREQ[TABELA_FREQ$Var1==1,][3],2)
+    Decision      <- get_decision(Players, Prob_Win_S)
+    Prob_score_01 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==1,]$Freq)/Total_simulation)*100,2)
+    Prob_score_02 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==2,]$Freq)/Total_simulation)*100,2)
+    Prob_score_03 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==3,]$Freq)/Total_simulation)*100,2)
+    Prob_score_04 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==4,]$Freq)/Total_simulation)*100,2)
+    Prob_score_05 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==5,]$Freq)/Total_simulation)*100,2)
+    Prob_score_06 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==6,]$Freq)/Total_simulation)*100,2)
+    Prob_score_07 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==7,]$Freq)/Total_simulation)*100,2)
+    Prob_score_08 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==8,]$Freq)/Total_simulation)*100,2)
+    Prob_score_09 <- round((sum(SCORE_FREQ[SCORE_FREQ$Var1==9,]$Freq)/Total_simulation)*100,2)
+    
+    # prob jus community
+    TIME01<-Sys.time()
+    Time_Calc     <- round(TIME01-TIME00,2)
+    df_f<-data.frame(Stage,Players,Norm_Prob,Exat_prob_P01,Score_P01,N_simulation,Prob_Win_S,Decision,
+                     Prob_score_01,Prob_score_02,Prob_score_03,Prob_score_04,Prob_score_05,Prob_score_06,Prob_score_07,
+                     Prob_score_08,Prob_score_09,
+                     Time_Calc)
+    
+    return(df_f)
+    
+  }
+}
 
 

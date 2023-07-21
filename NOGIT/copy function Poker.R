@@ -1,6 +1,6 @@
 data.frame(CARTA_PLAYER01_01="", CARTA_PLAYER01_02="", ROUND_ONE_01="", ROUND_ONE_02="", ROUND_ONE_03="", ROUND_TWO="", ROUND_THREE="")
 
-dotTransformToRank(board) # Determine the rank of a card. 2 = deuce ...11 = jack 12 = queen 13 = king 14 = ace
+dotTransformToRank(52) # Determine the rank of a card. 2 = deuce ...11 = jack 12 = queen 13 = king 14 = ace
 dotTransformToSuit(board) # 1 = spade 2 = club 3 = heart 4 = diamond
 dotScorer(c(2,1,3,2,5,3,6,4,7,1,13,2,14,2)) # Determine the ranking of one hand / 9 = Straight Flush / 8 = Four of a Kind /..
 

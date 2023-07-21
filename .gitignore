@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 cards/
+NOGIT/
 .Rdata
 .httr-oauth
 .DS_Store
