@@ -273,7 +273,7 @@ SIMULATION_POKER_NION<-function( Data_frame_cards,
                                  ROUND_ONE_03,
                                  ROUND_TWO,
                                  ROUND_THREE){
-  
+  SEQ_CARDS <- seq(52)
   cardDeck <- c(outer(c(2:10,"J","Q","K","A"),
                       c("H","S","C","D"),
                       paste0))

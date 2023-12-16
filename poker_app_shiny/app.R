@@ -32,7 +32,7 @@ Data_frame_cards <- data.frame(n_cards, cardDeck)
 
 # Create a sequence of 52 numbers (representing the cards)
 # Cria uma sequência de 52 números (representando as cartas)
-SEQ_CARDS <- seq(52)
+# SEQ_CARDS <- seq(52)
 
 #######################################################################################################################################################################################################
 # Definir a interface do usuário
