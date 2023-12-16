@@ -1,0 +1,12 @@
+name: poker_app_shiny
+title: poker_app_shiny
+username: nionmaron
+account: nionmaron
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9488570
+bundleId: 7482234
+url: https://nionmaron.shinyapps.io/poker_app_shiny/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

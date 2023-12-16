@@ -3,7 +3,7 @@ library(shiny)
 library(shinymanager)
 library(shinydashboard)
 source("Function_Poker.R")
-library(poker)
+#library(poker)
 library(shinyWidgets)
 library(DT)
 
@@ -34,6 +34,7 @@ Data_frame_cards <- data.frame(n_cards, cardDeck)
 # Cria uma sequência de 52 números (representando as cartas)
 SEQ_CARDS <- seq(52)
 
+#######################################################################################################################################################################################################
 # Definir a interface do usuário
 ui <- dashboardPage(
   dashboardHeader(title = "Poker"),
@@ -291,11 +292,13 @@ server <- function(input, output, session) {
     print( data.frame(previous_value()))
       
     })
+    
   
     output$simulation <- renderUI({
       result_table <- result2()
       tagList(
-        tags$span(paste(round(as.numeric(result_table$PROB[1]),2),"%"),style = "font-weight: bold;font-size: 2.5em;padding: 0px;margin: 0px;"),
+        tags$span(ifelse(length(selected_cards$hand)>1,paste(round(as.numeric(result_table$PROB[1]),2),"%"),"-"),
+                  style = "font-weight: bold;font-size: 2.5em;padding: 0px;margin: 0px;"),
         tags$h3(paste("Probabilidade Simulação:",input$n_simulation),style = "font-weight: bold;font-size: 1em;padding: 0px;margin:0px;"),
       )
     })
@@ -303,14 +306,17 @@ server <- function(input, output, session) {
     output$score <- renderUI({
       result_table <- result2()
       tagList(
-        tags$span(paste(get_poker_score(result_table$Score_P01[1],language = lang_app(input$language))),style = "font-weight: bold;font-size: 2.5em;padding: 0px;margin: 0px;"),
-        #tags$h3(paste("Pontuação"),style = "font-weight: bold;font-size: 1em;padding: 0px;margin:0px;"),
+        tags$span(ifelse(length(selected_cards$hand)>1,paste(get_poker_score(result_table$Score_P01[1],language = lang_app(input$language))),"-"),
+                  style = "font-weight: bold;font-size: 2.5em;padding: 0px;margin: 0px;"),
+        tags$h3(paste("Pontuação"),style = "font-weight: bold;font-size: 1em;padding: 0px;margin:0px;"),
       )
+ 
     })
     output$decision <- renderUI({
       result_table <- result2()
       tagList(
-        tags$span(paste(result_table$Decision[1]),style = "font-weight: bold;font-size: 2.5em;padding: 0px;margin: 0px;"),
+        tags$span(ifelse(length(selected_cards$hand)>1,paste(result_table$Decision[1]),"-"),
+                  style = "font-weight: bold;font-size: 2.5em;padding: 0px;margin: 0px;"),
         tags$h3(paste("Sugestão"),style = "font-weight: bold;font-size: 1em;padding: 0px;margin:0px;"),
       )
     })
@@ -460,6 +466,7 @@ server <- function(input, output, session) {
     selected_cards$hand <- character(0)
     selected_cards$table <- character(0)
     selected_cards$clicked <- character(0)
+
     result<-data.frame()
     prob_player1<-"25%"
   })
