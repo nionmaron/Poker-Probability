@@ -1,9 +1,11 @@
+NOGIT/
+poker_app_shiny/rsconnect/
+
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 cards/
-NOGIT/
 .Rdata
 .httr-oauth
 .DS_Store

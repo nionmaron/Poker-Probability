@@ -8,8 +8,9 @@ library(shinyWidgets)
 library(DT)
 
 # ------------------------------------------------------------
-# 1) Crie o dicionário de textos
+# 1) Criar o dicionário de textos
 # ------------------------------------------------------------
+
 text_dict <- list(
   pt = list(
     app_title         = "NionPoker",
@@ -103,8 +104,7 @@ Data_frame_cards <- data.frame(n_cards, cardDeck)
 
 # ------------------------------------------------------------
 # 4) Definir a interface do usuário (UI)
-#    A ideia aqui é usar textOutput() ou deixar labels vazios
-#    para serem atualizados via server.
+
 # ------------------------------------------------------------
 ui <- tagList(
   # Definir o título e o favicon no head
